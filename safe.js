@@ -1,8 +1,12 @@
+#!/usr/bin/env node
+'use strict';
+
 let Fs 		= require('fs');
 let Crypto 	= require('crypto');
 let Path 	= require('path');
 var Zlib 	= require('zlib');
 var Mkdirp 	= require('mkdirp');
+var Program = require('commander');
 
 // settings
 let CHUNK_SIZE 			= 2 * 1024 * 1024; // 2MB
@@ -20,6 +24,14 @@ let INFO 				= {
 						};
 let DECRYPTION_OFFSET 	= 0;
 
+let progress = function(bytes)
+{
+	let progress = Math.ceil((bytes * 100) / TOTALSIZE);
+
+	if(progress > 100) progress = 100;
+
+	return progress + '%';
+};
 
 let getAttributes = function(path, callback)
 {
@@ -358,95 +370,114 @@ let walk = function(dir, action, done) {
     dive(dir);
 };
 
+let encrypt = function()
+{
+	getAttributes(INPUT, function(stats){
+		let output = Fs.createWriteStream(OUTPUT, {'flags': 'a'});
 
-// getAttributes(INPUT, function(stats){
-// 	let output = Fs.createWriteStream(OUTPUT, {'flags': 'a'});
-
-// 	if(stats.isDirectory())
-// 	{
-// 		let filesList = [];
-
-// 		let encrypt = function(index)
-// 		{
-// 			encryptFileAtPath(filesList[index], output, INPUT, PASSWORD, function(file){
-// 				INFO.files.push(file);
-
-// 				// continue to encrypt the next file
-// 				if(index < filesList.length - 1)
-// 				{
-// 					index++;
-// 					encrypt(index);						
-// 				}
-
-// 				// finished encrypting exit
-// 				else 
-// 				{
-// 					// add the payload to the encrypted file
-// 					setEncryptionInfo(OUTPUT, INFO);
-// 				}
-// 			});
-// 		}
-
-// 		walk(INPUT, function(path, stat, folder){
-// 			console.log(path, folder);
-// 			// if it's an empty folder just add it the payload
-// 			if(folder)
-// 			{
-// 				INFO.files.push({path: path.replace(INPUT, '')})
-// 			}
-
-// 			else
-// 			{
-// 				filesList.push(path);
-// 				TOTALSIZE += stat.size;
-// 			}
-// 		}, function(){
-// 			console.log('Done');
-// 			console.log('Files', filesList.length, TOTALSIZE/1024/1024);
-
-// 			encrypt(0);
-// 		});
-// 	}
-
-// 	else
-// 	{
-// 		encryptFileAtPath(INPUT, output, Path.dirname(INPUT), PASSWORD, function(file){
-// 			INFO.files.push(file);
-// 			setEncryptionInfo(OUTPUT, INFO);
-// 		});
-// 	}
-// });
-
-
-getEncryptionInfo(OUTPUT, function(info){
-	// console.log(info);
-	let index = 0;
-
-	let nextFile = function()
-	{
-		let file = info.files[index];
-		index++;
-
-		// if it's a file then decrypt it
-			if(typeof file.chunks !== 'undefined')
+		if(stats.isDirectory())
 		{
-			//                 file            $in      $out   password     
-			decryptFileAtPath(file, OUTPUT, DECRYPT, PASSWORD, function(){
-				console.log('Decryption of file finished');
-				// if the decryption ended pass to the next file
-				if(index < info.files.length) nextFile();
+			let filesList = [];
+
+			let encrypt = function(index)
+			{
+				encryptFileAtPath(filesList[index], output, INPUT, PASSWORD, function(file){
+					INFO.files.push(file);
+
+					// continue to encrypt the next file
+					if(index < filesList.length - 1)
+					{
+						index++;
+						encrypt(index);						
+					}
+
+					// finished encrypting exit
+					else 
+					{
+						// add the payload to the encrypted file
+						setEncryptionInfo(OUTPUT, INFO);
+					}
+				});
+			}
+
+			walk(INPUT, function(path, stat, folder){
+				console.log(path, folder);
+				// if it's an empty folder just add it the payload
+				if(folder)
+				{
+					INFO.files.push({path: path.replace(INPUT, '')})
+				}
+
+				else
+				{
+					filesList.push(path);
+					TOTALSIZE += stat.size;
+				}
+			}, function(){
+				console.log('Done');
+				console.log('Files', filesList.length, TOTALSIZE/1024/1024);
+
+				encrypt(0);
 			});
 		}
 
-		// else just replicate the empty folder
 		else
 		{
-			// create the folder relative to the desti
-			Mkdirp.sync(Path.join(DECRYPT, file.path));
-			// if the decryption ended pass to the next file
-			if(index < info.files.length) nextFile();
+			encryptFileAtPath(INPUT, output, Path.dirname(INPUT), PASSWORD, function(file){
+				INFO.files.push(file);
+				setEncryptionInfo(OUTPUT, INFO);
+			});
 		}
-	};
+	});
+};
 
-	nextFile();
-});
+let decrypt = function()
+{
+	getEncryptionInfo(OUTPUT, function(info){
+		// console.log(info);
+		let index = 0;
+
+		let nextFile = function()
+		{
+			let file = info.files[index];
+			index++;
+
+			// if it's a file then decrypt it
+				if(typeof file.chunks !== 'undefined')
+			{
+				//                 file            $in      $out   password     
+				decryptFileAtPath(file, OUTPUT, DECRYPT, PASSWORD, function(){
+					console.log('Decryption of file finished');
+					// if the decryption ended pass to the next file
+					if(index < info.files.length) nextFile();
+				});
+			}
+
+			// else just replicate the empty folder
+			else
+			{
+				// create the folder relative to the desti
+				Mkdirp.sync(Path.join(DECRYPT, file.path));
+				// if the decryption ended pass to the next file
+				if(index < info.files.length) nextFile();
+			}
+		};
+
+		nextFile();
+	});
+};
+
+Program
+	.version('1.0.0')
+	.option('-e, --encrypt', 'encrypt')
+	.action(function(directory, options){
+		console.log('ssss', directory, options)
+	})
+	.option('-d, --decrypt', 'decrypt')
+	.option('-p, --password', 'the password used to encrypt or decrypt')
+	.option('-i, --in', 'path (this could be a file or a folder)')
+	.option('-o, --out', 'path where to encrypt or decrypt')
+	
+	.parse(process.argv);
+
+if (!Program.args.length) Program.help();
