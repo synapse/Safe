@@ -388,6 +388,7 @@ let walk = function(dir, action, done) {
 // 		}
 
 // 		walk(INPUT, function(path, stat, folder){
+// 			console.log(path, folder);
 // 			// if it's an empty folder just add it the payload
 // 			if(folder)
 // 			{
@@ -423,25 +424,27 @@ getEncryptionInfo(OUTPUT, function(info){
 
 	let nextFile = function()
 	{
+		let file = info.files[index];
+		index++;
+
 		// if it's a file then decrypt it
-		if(typeof info.files[index].chunks !== 'undefined')
+			if(typeof file.chunks !== 'undefined')
 		{
 			//                 file            $in      $out   password     
-			decryptFileAtPath(info.files[index], OUTPUT, DECRYPT, PASSWORD, function(){
+			decryptFileAtPath(file, OUTPUT, DECRYPT, PASSWORD, function(){
 				console.log('Decryption of file finished');
-
-				if(index < info.files.length - 1)
-				{
-					index++;
-					nextFile();
-				}
+				// if the decryption ended pass to the next file
+				if(index < info.files.length) nextFile();
 			});
 		}
 
 		// else just replicate the empty folder
 		else
 		{
-			Mkdirp.sync(Path.join(DECRYPT, info.files[index].path));
+			// create the folder relative to the desti
+			Mkdirp.sync(Path.join(DECRYPT, file.path));
+			// if the decryption ended pass to the next file
+			if(index < info.files.length) nextFile();
 		}
 	};
 
