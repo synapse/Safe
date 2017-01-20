@@ -18,6 +18,7 @@ let INFO 				= {
 							files: [],
 							check: hmac.digest('hex') // HMAC hash of the password
 						};
+let DECRYPTION_OFFSET 	= 0;
 
 
 let getAttributes = function(path, callback)
@@ -213,12 +214,17 @@ var decryptFileAtPath = function(file, $in, $out, password, callback)
 		let readNextChunk = function() {
 			// empty buffer that will contain the unencrypted chunk of data
 			let buffer = new Buffer(file.chunks[index].size);
-			
-			Fs.read(fd, buffer, 0, file.chunks[index].size, null, function(err, nread) {
+			let length = file.chunks[index].size;
+			let position = DECRYPTION_OFFSET;
+
+			Fs.read(fd, buffer, 0, length, position, function(err, nread) {
 
 				let authTag = new Buffer.from(file.chunks[index].authTag, 'base64');
 				let IV = new Buffer.from(file.chunks[index].iv, 'base64');
 				let data = decryptData(buffer, password, authTag, IV);
+
+				// setting the decryption offset for the next file
+				DECRYPTION_OFFSET += length;
 				
 				// update the file hash
 				hash.update(data, 'utf8');
@@ -229,7 +235,7 @@ var decryptFileAtPath = function(file, $in, $out, password, callback)
   				} catch(err) {
     				if(err.code == 'ENOENT')
 					{
-						Mkdirp.sync($out);
+						Mkdirp.sync(Path.dirname(destinationPath));
 						Fs.closeSync(Fs.openSync(destinationPath, 'w'));
 						destinationStream = Fs.createWriteStream(destinationPath, {'flags': 'a'});
 					}
@@ -291,10 +297,10 @@ let walk = function(dir, action, done) {
         }
     };
 
-    var performAction = function(file, stat) {
+    var performAction = function(file, stat, folder) {
         if(!dead) {
             try {
-                action(file, stat);
+                action(file, stat, folder);
             }
             catch(error) {
                 fail(error);
@@ -311,28 +317,37 @@ let walk = function(dir, action, done) {
                     fail(err); // if an error occured, let's fail
                 }
                 else { // iterate over the files
-                    list.forEach(function(file) {
-                        if(!dead) { // if we are already dead, we don't do anything
-                            var path = Path.join(dir, file);
-                            pending++; // async operation starting after this line
-                            Fs.stat(path, function(err, stat) {
-                                if(!dead) { // if we are already dead, we don't do anything
-                                    if (err) {
-                                        fail(err); // if an error occured, let's fail
-                                    }
-                                    else {
-                                        if (stat && stat.isDirectory()) {
-                                            dive(path); // it's a directory, let's explore recursively
-                                        }
-                                        else {
-                                            performAction(path, stat); // it's not a directory, just perform the action
-                                        }
-                                        pending--; checkSuccess(); // async operation complete
-                                    }
-                                }
-                            });
-                        }
-                    });
+					if(list.length > 0)
+					{
+						list.forEach(function(file) {
+							if(!dead) { // if we are already dead, we don't do anything
+								var path = Path.join(dir, file);
+								pending++; // async operation starting after this line
+								Fs.stat(path, function(err, stat) {
+									if(!dead) { // if we are already dead, we don't do anything
+										if (err) {
+											fail(err); // if an error occured, let's fail
+										}
+										else {
+											if (stat && stat.isDirectory()) {
+												dive(path); // it's a directory, let's explore recursively
+											}
+											else {
+												performAction(path, stat, false); // it's not a directory, just perform the action
+											}
+											pending--; checkSuccess(); // async operation complete
+										}
+									}
+								});
+							}
+						});
+					}
+
+					else
+					{
+						performAction(dir, null, true);
+					}
+
                     pending--; checkSuccess(); // async operation complete
                 }
             }
@@ -372,9 +387,18 @@ let walk = function(dir, action, done) {
 // 			});
 // 		}
 
-// 		walk(INPUT, function(file, stat){
-// 			filesList.push(file);
-// 			TOTALSIZE += stat.size;
+// 		walk(INPUT, function(path, stat, folder){
+// 			// if it's an empty folder just add it the payload
+// 			if(folder)
+// 			{
+// 				INFO.files.push({path: path.replace(INPUT, '')})
+// 			}
+
+// 			else
+// 			{
+// 				filesList.push(path);
+// 				TOTALSIZE += stat.size;
+// 			}
 // 		}, function(){
 // 			console.log('Done');
 // 			console.log('Files', filesList.length, TOTALSIZE/1024/1024);
@@ -395,11 +419,31 @@ let walk = function(dir, action, done) {
 
 getEncryptionInfo(OUTPUT, function(info){
 	// console.log(info);
-	for(var i = 0; i < info.files.length; i++)
-	{
-		//                 file            $in      $out   password     
-		decryptFileAtPath(info.files[i], OUTPUT, DECRYPT, PASSWORD, function(){
+	let index = 0;
 
-		});
-	}
+	let nextFile = function()
+	{
+		// if it's a file then decrypt it
+		if(typeof info.files[index].chunks !== 'undefined')
+		{
+			//                 file            $in      $out   password     
+			decryptFileAtPath(info.files[index], OUTPUT, DECRYPT, PASSWORD, function(){
+				console.log('Decryption of file finished');
+
+				if(index < info.files.length - 1)
+				{
+					index++;
+					nextFile();
+				}
+			});
+		}
+
+		// else just replicate the empty folder
+		else
+		{
+			Mkdirp.sync(Path.join(DECRYPT, info.files[index].path));
+		}
+	};
+
+	nextFile();
 });
