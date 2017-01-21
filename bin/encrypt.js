@@ -44,7 +44,7 @@ var hid = program.hide || false;
  * Run
  */
 var run = function() {
-    console.log(pwd, src, dst, hid);
+    encrypt(pwd, src, dst);
 };
 run();
 
