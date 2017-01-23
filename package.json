@@ -1,5 +1,5 @@
 {
-    "name": "safe",
+    "name": "safe-encrypt",
     "version": "1.0.0",
     "description": "Awesome AES 256 GCM encryption utility",
     "bin": {
