@@ -1,2 +1,4 @@
 /.vscode
 /node_modules
+/lib/safe copy.js
+/safe2.js

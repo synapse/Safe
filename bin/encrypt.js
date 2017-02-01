@@ -16,9 +16,6 @@ program.on('--help', function () {
     console.log(chalk.gray('    # encrypt a folder and all files recursively'));
     console.log("    $ safe encrypt 'password' /home/downloads/secret-folder /home/downloads/mydocs.safe");
     console.log();
-    console.log(chalk.gray('    # encrypt and hide the files list'));
-    console.log("    $ safe encrypt 'password' /home/downloads/secret.pdf /home/downloads/secret.safe -h");
-    console.log();
 });
 
 
@@ -38,7 +35,6 @@ help();
 var pwd = program.args[0];
 var src = program.args[1];
 var dst = program.args[2];
-var hid = program.hide || false;
 
 /**
  * Run
