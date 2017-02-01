@@ -52,7 +52,7 @@ The JSON payload consists of an object containing all the encryption information
 	"files": [
 		{
 			"path": "/relative/file/path",
-			"hash: "SHA1 file hash",
+			"hash": "SHA1 file hash",
 			"size": 0,
 			"chunks": [
 				{
