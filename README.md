@@ -5,6 +5,12 @@ Safe features industry strength AES256 GCM encryption while being very easy to u
 
 <p align="center"><img src ="256.png" /></p>
 
+## Installation
+
+```bash
+$ npm install safe-encrypt -g
+```
+
 ## Usage
 
 ### Encryption
