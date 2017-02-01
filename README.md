@@ -57,7 +57,7 @@ The JSON payload consists of an object containing all the encryption information
 			"chunks": [
 				{
 					"size": 0,
-					"authTag": "Auth tag in hexadecimal,
+					"authTag": "Auth tag in hexadecimal",
 					"iv": "IV in hexadecimal"
 				}
 				...
