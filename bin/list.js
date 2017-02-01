@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 var program = require('commander');
 var chalk = require('chalk');
 var list = require('../lib/list');

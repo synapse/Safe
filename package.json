@@ -1,14 +1,15 @@
 {
   "name": "safe-encrypt",
-  "version": "1.0.3",
+  "version": "1.0.10",
   "description": "Awesome AES 256 GCM encryption utility",
   "preferGlobal": true,
   "bin": {
-    "safe": "bin/safe",
-    "safe-encrypt": "bin/encrypt",
-    "safe-decrypt": "bin/decrypt",
-    "safe-list": "bin/list"
+    "safe": "bin/safe.js",
+    "safe-encrypt": "bin/encrypt.js",
+    "safe-decrypt": "bin/decrypt.js",
+    "safe-list": "bin/list.js"
   },
+  "main": "lib/index.js",
   "dependencies": {
     "bson": "^1.0.4",
     "chalk": "^1.1.3",
