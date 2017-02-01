@@ -1,4 +1,5 @@
-[![npm](https://img.shields.io/npm/v/npm.svg)](https://www.npmjs.com/package/safe-encrypt) [![npm](https://img.shields.io/npm/dt/express.svg)](https://www.npmjs.com/package/safe-encrypt)
+[![npm package](https://img.shields.io/npm/v/safe-encrypt.svg)](https://www.npmjs.com/package/safe-encrypt)
+ [![npm](https://img.shields.io/npm/dt/safe-encrypt.svg)](https://www.npmjs.com/package/safe-encrypt)
 
 # Safe
 
