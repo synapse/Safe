@@ -1,6 +1,6 @@
 {
   "name": "safe-encrypt",
-  "version": "1.0.10",
+  "version": "1.0.11",
   "description": "Awesome AES 256 GCM encryption utility",
   "preferGlobal": true,
   "bin": {

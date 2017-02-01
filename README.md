@@ -1,3 +1,5 @@
+[![npm](https://img.shields.io/npm/v/npm.svg)](https://www.npmjs.com/package/safe-encrypt) [![npm](https://img.shields.io/npm/dt/express.svg)](https://www.npmjs.com/package/safe-encrypt)
+
 # Safe
 
 Ever needed to secure your files in a fast and simple way ? Then look no further because Safe is the ultimate encryption app that you'll ever need.
