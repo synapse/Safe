@@ -72,7 +72,7 @@ The JSON payload consists of an object containing all the encryption information
 		...
 	],
 	"totalSize": 0,
-	"date": "2017-01-01 12:00:00"
+	"date": "Thu Feb 02 2017 00:00:00 GMT+0100 (CET)"
 }
 ```
 
@@ -81,3 +81,5 @@ The JSON payload consists of an object containing all the encryption information
 This represents the size of the encrypted payload. In order to read the correct amount of data for the payload we need to know the exact size of the encrypted payload data.
 
 ## Todo
+
+* check if the relative decryption destionation path not exists already. we don't want to overwrite already existing files
