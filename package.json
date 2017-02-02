@@ -1,6 +1,6 @@
 {
   "name": "safe-encrypt",
-  "version": "1.0.11",
+  "version": "1.0.12",
   "description": "Awesome AES 256 GCM encryption utility",
   "preferGlobal": true,
   "bin": {
@@ -34,7 +34,7 @@
     "secure"
   ],
   "author": "Cristian Barlutiu",
-  "license": "ISC",
+  "license": "MIT",
   "bugs": {
     "url": "https://github.com/synapse/Safe/issues"
   },
