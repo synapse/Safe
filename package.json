@@ -1,6 +1,6 @@
 {
   "name": "safe-encrypt",
-  "version": "1.0.12",
+  "version": "1.0.13",
   "description": "Awesome AES 256 GCM encryption utility",
   "preferGlobal": true,
   "bin": {
@@ -38,5 +38,8 @@
   "bugs": {
     "url": "https://github.com/synapse/Safe/issues"
   },
-  "homepage": "https://github.com/synapse/Safe#readme"
+  "homepage": "https://github.com/synapse/Safe#readme",
+  "engines": {
+    "node": ">=5.10.0"
+  }
 }
